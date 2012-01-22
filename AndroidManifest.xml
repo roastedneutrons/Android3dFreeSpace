@@ -8,9 +8,11 @@
 
     <application
         android:icon="@drawable/ic_launcher"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
         android:label="@string/app_name" android:debuggable="true">
         <activity
             android:name=".FreeSpaceActivity"
+            android:screenOrientation="landscape"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
