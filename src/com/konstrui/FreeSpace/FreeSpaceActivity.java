@@ -10,15 +10,14 @@ import android.media.AudioManager;
 import android.media.SoundPool;
 import android.media.SoundPool.OnLoadCompleteListener;
 import android.os.Bundle;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Toast;
+import android.widget.TextView;
 
 public class FreeSpaceActivity extends Activity implements SensorEventListener {
 	private SensorManager mSensorManager;
 	private boolean color = false; 
-	private View view;
+	private TextView view;
 	private long lastUpdate;
 	private SoundPool soundPool;
 	private int soundID;
@@ -30,7 +29,7 @@ public class FreeSpaceActivity extends Activity implements SensorEventListener {
 	private float[] mRemapedRotationMatrix = new float[16];
 	private float[] mOrientation = new float[3];
 
-	
+	private float[] gVec={0,0,0};
 	private float[] curAccel={0,0,0};
 	
 /** Called when the activity is first created. */
@@ -43,8 +42,8 @@ public class FreeSpaceActivity extends Activity implements SensorEventListener {
 	  
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		view = findViewById(R.id.textView);
-		view.setBackgroundColor(Color.GREEN);
+		view = (TextView)findViewById(R.id.textView);
+		view.setBackgroundColor(Color.BLACK);
 
 		mSensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
 		mSensorManager.registerListener(this,
@@ -80,6 +79,19 @@ public class FreeSpaceActivity extends Activity implements SensorEventListener {
 				break;
 			}
 		}
+		if(mAccelerometerReading != null && mMagneticFieldReading != null &&
+		SensorManager.getRotationMatrix(mRotationMatrix, null, mAccelerometerReading, mMagneticFieldReading))
+		{
+			SensorManager.remapCoordinateSystem(mRotationMatrix,SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X, mRemapedRotationMatrix);
+			SensorManager.getOrientation(mRemapedRotationMatrix, mOrientation);
+		}
+		if(mOrientation != null)
+		{
+			float yaw = mOrientation[0] * 57.2957795f;
+	        float pitch = mOrientation[1] * 57.2957795f;
+	        float roll = mOrientation[2] * 57.2957795f;
+	        view.setText("yaw: "+yaw+"\npitch: "+pitch+"\nroll: "+roll);
+		}
 		if (isShaken()) {
 			onShake();
 		}
@@ -90,12 +102,13 @@ public class FreeSpaceActivity extends Activity implements SensorEventListener {
 		float x = mAccelerometerReading[0];
 		float y = mAccelerometerReading[1];
 		float z = mAccelerometerReading[2];
-
+		
+		
 		float accelationSquareRoot = (x * x + y * y + z * z)
 				/ (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
 		long actualTime = System.currentTimeMillis();
 
-		if (actualTime - lastUpdate > 200) {
+		if (actualTime - lastUpdate > 50) {
 			lastUpdate = actualTime;
 			if (accelationSquareRoot >= 1.5) {
 				return true;
@@ -109,7 +122,7 @@ public class FreeSpaceActivity extends Activity implements SensorEventListener {
 
 	public void onShake() {
 		if (color) {
-			view.setBackgroundColor(Color.GREEN);
+			view.setBackgroundColor(Color.BLUE);
 			
 		} else {
 			view.setBackgroundColor(Color.RED);
